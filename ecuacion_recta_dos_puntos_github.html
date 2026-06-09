@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recta por dos puntos</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#ecfeff,#fef3c7);color:#1f2937}
+header{background:linear-gradient(135deg,#0f766e,#2563eb);color:white;padding:30px 16px;text-align:center;border-bottom-left-radius:32px;border-bottom-right-radius:32px;box-shadow:0 8px 24px #0003}
+header h1{margin:0;font-size:clamp(28px,5vw,46px)}
+header p{font-size:18px;max-width:850px;margin:10px auto 0}
+main{max-width:1100px;margin:24px auto;padding:16px}
+.card{background:white;border-radius:24px;padding:22px;margin-bottom:20px;box-shadow:0 8px 25px #0002;border:1px solid #0001}
+.formula{display:block;width:100%;max-width:880px;margin:10px auto;border-radius:20px;box-shadow:0 4px 16px #0002}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;align-items:center}
+@media(max-width:880px){.grid{grid-template-columns:1fr}}
+.datos{background:#f8fafc;border-left:7px solid #0f766e;padding:16px;border-radius:16px;font-size:20px;line-height:1.6}
+.ecuacion{font-size:28px;font-weight:bold;color:#0f766e;word-break:break-word}
+.input-row{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+input{font-size:18px;padding:13px;border-radius:12px;border:2px solid #cbd5e1;width:270px}
+button{border:0;border-radius:14px;padding:13px 18px;font-size:17px;font-weight:bold;color:white;cursor:pointer;background:#2563eb;box-shadow:0 4px 12px #2563eb59}
+.btn-sec{background:#16a34a}.btn-warn{background:#f97316}
+.resultado{display:none;margin-top:16px;padding:16px;border-radius:16px;font-size:18px;line-height:1.6}
+.ok{background:#dcfce7;border:2px solid #22c55e}.bad{background:#fee2e2;border:2px solid #ef4444}.info{background:#e0f2fe;border:2px solid #0284c7}
+.score{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;font-size:18px}
+.pill{background:#ecfeff;color:#115e59;padding:10px 15px;border-radius:999px;font-weight:bold}
+.mini{font-size:15px;color:#475569}
+canvas{width:100%;max-width:460px;background:#f8fafc;border-radius:20px;border:1px solid #dbeafe;display:block;margin:auto}
+.badge{display:inline-block;padding:6px 11px;border-radius:999px;background:#fef3c7;color:#92400e;font-weight:bold;margin-bottom:8px}
+footer{text-align:center;padding:20px;color:#475569;font-size:14px}
+code{background:#f1f5f9;padding:2px 6px;border-radius:6px}
+</style>
+</head>
+<body>
+<header>
+<h1>Ecuación de la Recta</h1>
+<p>Encontrá la ecuación de la recta que pasa por dos puntos.</p>
+</header>
+
+<main>
+<section class="card">
+<span class="badge">Fórmulas principales</span>
+<img class="formula" alt="Fórmula pendiente y recta" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1050' height='360' viewBox='0 0 1050 360'><rect width='1050' height='360' rx='35' fill='%23fff'/><rect x='20' y='20' width='1010' height='320' rx='30' fill='%23ecfeff' stroke='%230f766e' stroke-width='6'/><text x='525' y='75' font-family='Arial' font-size='40' font-weight='700' text-anchor='middle' fill='%230f172a'>Recta que pasa por dos puntos</text><text x='525' y='155' font-family='Arial' font-size='45' font-weight='700' text-anchor='middle' fill='%231d4ed8'>m = (y₂ − y₁) / (x₂ − x₁)</text><text x='525' y='230' font-family='Arial' font-size='43' font-weight='700' text-anchor='middle' fill='%230f766e'>y = mx + b</text><text x='525' y='290' font-family='Arial' font-size='27' text-anchor='middle' fill='%23374151'>Primero calculamos la pendiente m y luego hallamos b.</text></svg>">
+</section>
+
+<section class="card">
+<div class="score">
+<div class="pill">Correctas: <span id="correctas">0</span></div>
+<div class="pill">Intentos: <span id="intentos">0</span></div>
+</div>
+</section>
+
+<section class="card">
+<div class="grid">
+<div>
+<h2>Ejercicio</h2>
+<div class="datos">
+<div>Encontrá la ecuación de la recta que pasa por:</div>
+<div class="ecuacion" id="puntosTexto"></div>
+<div class="mini">Escribí la respuesta en forma <b>y = mx + b</b>.</div>
+</div>
+<div class="input-row">
+<label for="respuesta"><b>Tu respuesta:</b></label>
+<input id="respuesta" type="text" placeholder="Ej: y = 2x + 3">
+<button onclick="verificar()">Verificar</button>
+<button class="btn-sec" onclick="mostrarResultado()">Ver resultado</button>
+<button class="btn-warn" onclick="nuevoEjercicio()">Nuevo ejercicio</button>
+</div>
+<p class="mini">Acepta respuestas equivalentes: <code>y=2x+3</code>, <code>y=-x+4</code>, <code>y=(1/2)x+3</code>.</p>
+<div id="resultado" class="resultado"></div>
+</div>
+<div><canvas id="grafico" width="460" height="460"></canvas></div>
+</div>
+</section>
+
+<section class="card">
+<h2>Pasos para resolver</h2>
+<p>1. Calcular la pendiente: <b>m = (y₂ − y₁) / (x₂ − x₁)</b>.<br>2. Reemplazar un punto en <b>y = mx + b</b>.<br>3. Despejar <b>b</b>.<br>4. Escribir la ecuación final.</p>
+</section>
+</main>
+
+<footer>Recurso interactivo para Matemática — listo para subir a GitHub Pages.</footer>
+
+<script>
+let ejercicio={},correctas=0,intentos=0;
+function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){let t=b;b=a%b;a=t}return a||1}
+function frac(n,d){if(d<0){n=-n;d=-d}let g=gcd(n,d);return{num:n/g,den:d/g}}
+function ft(f){return f.den===1?String(f.num):f.num+"/"+f.den}
+function dec(f){return f.num/f.den}
+function cx(f){if(f.num===0)return"";if(f.den===1){if(f.num===1)return"x";if(f.num===-1)return"-x";return f.num+"x"};if(f.num===1)return"(1/"+f.den+")x";if(f.num===-1)return"(-1/"+f.den+")x";return"("+f.num+"/"+f.den+")x"}
+function eq(m,b){if(m.num===0)return"y = "+ft(b);let t="y = "+cx(m);if(b.num>0)t+=" + "+ft(b);if(b.num<0)t+=" - "+ft({num:Math.abs(b.num),den:b.den});return t}
+function norm(s){return s.toLowerCase().replaceAll(" ","").replaceAll("−","-").replaceAll("*","").replaceAll(",",".").replaceAll("(","").replaceAll(")","")}
+function pn(s){if(s===""||s==="+")return 1;if(s==="-")return-1;if(s.includes("/")){let p=s.split("/");return parseFloat(p[0])/parseFloat(p[1])}return parseFloat(s)}
+function parseResp(str){
+ let s=norm(str); if(!s.startsWith("y="))return null; s=s.slice(2);
+ if(!s.includes("x")){let b=pn(s);return isNaN(b)?null:{m:0,b:b}}
+ let ix=s.indexOf("x"), mp=s.slice(0,ix), rest=s.slice(ix+1), m=pn(mp); if(isNaN(m))return null;
+ let b=0; if(rest!==""){b=pn(rest.replace("+","")); if(isNaN(b))return null}
+ return{m:m,b:b}
+}
+function nuevoEjercicio(){
+ document.getElementById("respuesta").value="";
+ document.getElementById("resultado").style.display="none";
+ let x1,y1,x2,y2;
+ do{x1=randInt(-5,5);y1=randInt(-5,5);x2=randInt(-5,5);y2=randInt(-5,5)}while(x1===x2);
+ let m=frac(y2-y1,x2-x1), b=frac(y1*m.den-m.num*x1,m.den);
+ ejercicio={x1,y1,x2,y2,m,b,ecuacion:eq(m,b)};
+ document.getElementById("puntosTexto").innerHTML="A("+x1+", "+y1+") y B("+x2+", "+y2+")";
+ dibujar();
+}
+function procedimiento(){
+ let e=ejercicio;
+ return `<b>Procedimiento:</b><br>
+ Puntos: A(${e.x1}, ${e.y1}) y B(${e.x2}, ${e.y2})<br><br>
+ <b>1. Pendiente:</b><br>
+ m = (y₂ − y₁) / (x₂ − x₁)<br>
+ m = (${e.y2} − ${e.y1}) / (${e.x2} − ${e.x1})<br>
+ m = ${e.y2-e.y1} / ${e.x2-e.x1}<br>
+ m = <b>${ft(e.m)}</b><br><br>
+ <b>2. Hallamos b usando y = mx + b:</b><br>
+ ${e.y1} = (${ft(e.m)})·(${e.x1}) + b<br>
+ b = <b>${ft(e.b)}</b><br><br>
+ <b>Ecuación final:</b><br>
+ <span style="font-size:24px;color:#0f766e;font-weight:bold">${e.ecuacion}</span>`;
+}
+function verificar(){
+ let caja=document.getElementById("resultado"), r=parseResp(document.getElementById("respuesta").value);
+ if(!r){caja.style.display="block";caja.className="resultado info";caja.innerHTML="Ingresá la respuesta en forma <b>y = mx + b</b>.";return}
+ intentos++;document.getElementById("intentos").innerText=intentos;
+ if(Math.abs(r.m-dec(ejercicio.m))<.0001 && Math.abs(r.b-dec(ejercicio.b))<.0001){
+  correctas++;document.getElementById("correctas").innerText=correctas;
+  caja.style.display="block";caja.className="resultado ok";caja.innerHTML="✅ <b>¡Correcto!</b><br>"+procedimiento();
+ }else{caja.style.display="block";caja.className="resultado bad";caja.innerHTML="❌ <b>No es correcto.</b><br>Revisá la pendiente y el valor de b. Podés tocar “Ver resultado”."}
+}
+function mostrarResultado(){let c=document.getElementById("resultado");c.style.display="block";c.className="resultado info";c.innerHTML=procedimiento()}
+function dibujar(){
+ let canvas=document.getElementById("grafico"),ctx=canvas.getContext("2d"),W=canvas.width,H=canvas.height,sc=35,cx0=W/2,cy0=H/2;
+ ctx.clearRect(0,0,W,H);ctx.fillStyle="#f8fafc";ctx.fillRect(0,0,W,H);
+ ctx.strokeStyle="#e2e8f0";ctx.lineWidth=1;
+ for(let i=-6;i<=6;i++){ctx.beginPath();ctx.moveTo(cx0+i*sc,20);ctx.lineTo(cx0+i*sc,H-20);ctx.stroke();ctx.beginPath();ctx.moveTo(20,cy0-i*sc);ctx.lineTo(W-20,cy0-i*sc);ctx.stroke()}
+ ctx.strokeStyle="#111827";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(20,cy0);ctx.lineTo(W-20,cy0);ctx.stroke();ctx.beginPath();ctx.moveTo(cx0,20);ctx.lineTo(cx0,H-20);ctx.stroke();
+ ctx.fillStyle="#475569";ctx.font="13px Arial";for(let i=-6;i<=6;i++){if(i!==0){ctx.fillText(i,cx0+i*sc-4,cy0+16);ctx.fillText(i,cx0+6,cy0-i*sc+4)}}
+ let m=dec(ejercicio.m),b=dec(ejercicio.b);function p(x,y){return{x:cx0+x*sc,y:cy0-y*sc}}
+ let pa=p(-6.2,m*(-6.2)+b),pb=p(6.2,m*6.2+b);
+ ctx.strokeStyle="#2563eb";ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y);ctx.stroke();
+ let p1=p(ejercicio.x1,ejercicio.y1),p2=p(ejercicio.x2,ejercicio.y2);
+ ctx.fillStyle="#dc2626";ctx.beginPath();ctx.arc(p1.x,p1.y,7,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(p2.x,p2.y,7,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#111827";ctx.font="bold 16px Arial";ctx.fillText("A("+ejercicio.x1+","+ejercicio.y1+")",p1.x+10,p1.y-10);ctx.fillText("B("+ejercicio.x2+","+ejercicio.y2+")",p2.x+10,p2.y-10);
+}
+nuevoEjercicio();
+</script>
+</body>
+</html>
